@@ -8,4 +8,6 @@
 
 Скачать игру: https://cloud.mail.ru/public/mfHp/5riKVomkB
 
-{{video(http://youtu.be/W9m85_skCCo[640,480])}}
+{{video([http://youtu.be/W9m85_skCCo](https://youtu.be/W9m85_skCCo)[640,480])}}
+
+https://youtu.be/W9m85_skCCo
