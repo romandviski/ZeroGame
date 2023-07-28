@@ -19,11 +19,11 @@ AWeaponBase::AWeaponBase()
 	RootComponent = SceneComponent;
 
 	SkeletalMeshWeapon_FP = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon For FP"));
-	SkeletalMeshWeapon_FP->SetGenerateOverlapEvents(false);
-	SkeletalMeshWeapon_FP->SetCollisionProfileName(TEXT("NoCollision"));
 	//SkeletalMeshWeapon_FP->SetupAttachment(GetRootComponent());
 	SkeletalMeshWeapon_FP->bCastDynamicShadow = false;
 	SkeletalMeshWeapon_FP->CastShadow = false;
+	SkeletalMeshWeapon_FP->SetGenerateOverlapEvents(false);
+	SkeletalMeshWeapon_FP->SetCollisionProfileName(TEXT("NoCollision"));
 	SkeletalMeshWeapon_FP->SetOnlyOwnerSee(true);
 	SkeletalMeshWeapon_FP->SetIsReplicated(true);
 
@@ -34,6 +34,14 @@ AWeaponBase::AWeaponBase()
 	SkeletalMeshWeapon_TP->SetOwnerNoSee(true);
 	SkeletalMeshWeapon_TP->SetIsReplicated(true);
 
+	StaticMeshFX = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh FX"));
+	StaticMeshFX->bCastDynamicShadow = false;
+	StaticMeshFX->CastShadow = false;
+	StaticMeshFX->SetupAttachment(SkeletalMeshWeapon_TP);
+	StaticMeshFX->SetGenerateOverlapEvents(false);
+	StaticMeshFX->SetCollisionProfileName(TEXT("NoCollision"));
+	StaticMeshFX->SetIsReplicated(true);
+	
 	MyAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("My Audio Component"));
 	MyAudioComponent->SetupAttachment(GetRootComponent());
 	MyAudioComponent->SetAutoActivate(false);
@@ -42,7 +50,12 @@ AWeaponBase::AWeaponBase()
 void AWeaponBase::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+
+	if (StaticMeshFX)
+	{
+		StaticMeshFX->SetHiddenInGame(true);
+	}
 }
 
 void AWeaponBase::Tick(float DeltaTime)
@@ -174,6 +187,7 @@ void AWeaponBase::Fire()
 		else
 		{
 			FireEffect_Multicast(FireStartPoint, FireForwardVector);
+			GetWorld()->GetTimerManager().SetTimer(HideTimer, this, &AWeaponBase::Hide_Multicast, 0.1f, false);
 			UKismetSystemLibrary::LineTraceSingle(GetWorld(), FireStartPoint,FireStartPoint + FireForwardVector * 50000, ETraceTypeQuery::TraceTypeQuery2,
 									false, Actors, DebugTrace, Hit, true, FLinearColor::Red,FLinearColor::Green, 0.0f);
 
@@ -191,5 +205,18 @@ void AWeaponBase::Fire()
 void AWeaponBase::FireEffect_Multicast_Implementation(FVector StartPoint, FVector ForwardVector)
 {
 	MyAudioComponent->Play();
-	DrawDebugLine(GetWorld(), StartPoint, StartPoint + ForwardVector * 10000, FColor::Yellow, false, 0.5f, (uint8)'\000', 0.5f);
+	// DrawDebugLine(GetWorld(), StartPoint, StartPoint + ForwardVector * 10000, FColor::Yellow, false, 0.5f, (uint8)'\000', 0.5f);
+
+	if (StaticMeshFX)
+	{
+		StaticMeshFX->SetHiddenInGame(false);
+	}
+}
+
+void AWeaponBase::Hide_Multicast_Implementation()
+{
+	if (StaticMeshFX)
+	{
+		StaticMeshFX->SetHiddenInGame(true);	
+	}
 }

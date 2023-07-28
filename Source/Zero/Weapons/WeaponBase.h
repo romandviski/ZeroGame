@@ -24,6 +24,8 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	USkeletalMeshComponent* SkeletalMeshWeapon_TP = nullptr;
 	UPROPERTY(EditDefaultsOnly)
+	UStaticMeshComponent* StaticMeshFX = nullptr;
+	UPROPERTY(EditDefaultsOnly)
 	UAudioComponent* MyAudioComponent = nullptr;
 
 	// Settings
@@ -53,6 +55,8 @@ protected:
 
 	FVector FireStartPoint;
 	FVector FireForwardVector;
+
+	FTimerHandle HideTimer;
 	
 	float FireTimer = 0.0f;
 	bool WeaponFiring = false;
@@ -69,8 +73,10 @@ protected:
 	
 	UFUNCTION(NetMulticast, Reliable)
 	void AttachMeshes_Multicast(USkeletalMeshComponent* FP_Mesh, USkeletalMeshComponent* TP_Mesh);
-	UFUNCTION(NetMulticast, Reliable)
+	UFUNCTION(NetMulticast, Unreliable)
 	void FireEffect_Multicast(FVector StartPoint, FVector ForwardVector);
+	UFUNCTION(NetMulticast, Unreliable)
+	void Hide_Multicast();
 
 public:
 	// Functions public
