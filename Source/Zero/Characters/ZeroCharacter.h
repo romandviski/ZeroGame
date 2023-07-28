@@ -64,8 +64,6 @@ protected:
 	// Variables
 	UPROPERTY(Replicated)
 	FVector CameraLocation_Rep;
-	UPROPERTY(Replicated)
-	FVector CameraForwardVector_Rep;
 	
 public:
 	AZeroCharacter();
@@ -84,7 +82,9 @@ public:
 	bool bHasRifle;
 	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Animation)
 	FRotator ControlRotation_Rep;
-
+	UPROPERTY(Replicated)
+	FVector CameraForwardVector_Rep;
+	
 	FVector GetFireLocation();
 	FVector GetFireVector();
 	

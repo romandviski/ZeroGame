@@ -24,8 +24,6 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	USkeletalMeshComponent* SkeletalMeshWeapon_TP = nullptr;
 	UPROPERTY(EditDefaultsOnly)
-	UStaticMeshComponent* StaticMeshFX = nullptr;
-	UPROPERTY(EditDefaultsOnly)
 	UAudioComponent* MyAudioComponent = nullptr;
 
 	// Settings
@@ -39,6 +37,8 @@ public:
 	float Damage = 100.0f;
 	UPROPERTY(EditDefaultsOnly, Category = Settings)
 	TSubclassOf<class AZeroProjectile> ProjectileClass;
+	UPROPERTY(EditDefaultsOnly, Category = Settings)
+	TSubclassOf<class AActor> TraceFXClass;
 	UPROPERTY(EditDefaultsOnly, Category = Settings)
 	FVector MuzzleOffset = FVector(100.0f, 0.0f, 25.0f);
 
@@ -75,8 +75,6 @@ protected:
 	void AttachMeshes_Multicast(USkeletalMeshComponent* FP_Mesh, USkeletalMeshComponent* TP_Mesh);
 	UFUNCTION(NetMulticast, Unreliable)
 	void FireEffect_Multicast(FVector StartPoint, FVector ForwardVector);
-	UFUNCTION(NetMulticast, Unreliable)
-	void Hide_Multicast();
 
 public:
 	// Functions public
