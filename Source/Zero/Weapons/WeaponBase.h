@@ -38,8 +38,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Settings)
 	TSubclassOf<class AZeroProjectile> ProjectileClass;
 	UPROPERTY(EditDefaultsOnly, Category = Settings)
-	TSubclassOf<class AActor> TraceFXClass;
-	UPROPERTY(EditDefaultsOnly, Category = Settings)
 	FVector MuzzleOffset = FVector(100.0f, 0.0f, 25.0f);
 
 protected:
