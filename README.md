@@ -9,5 +9,6 @@
 
 Скачать игру: https://cloud.mail.ru/public/mfHp/5riKVomkB
 
-Видео геймплея кликай 👇
+👇 Видео геймплея 👍
+
 [![Видео геймплея тут](https://img.youtube.com/vi/W9m85_skCCo/0.jpg)](https://www.youtube.com/watch?v=W9m85_skCCo)
