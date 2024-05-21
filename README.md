@@ -19,9 +19,11 @@
 
 <br/>Скачать игру: https://cloud.mail.ru/public/mfHp/5riKVomkB
 <br/>👇 Видео геймплея 👍
-<br/>[![Видео геймплея тут](https://img.youtube.com/vi/W9m85_skCCo/0.jpg)](https://www.youtube.com/watch?v=W9m85_skCCo)
+<br/>[![Видео геймплея тут](https://img.youtube.com/vi/W9m85_skCCo/0.jpg)](https://cloud.mail.ru/public/5AJu/vEWPsYhrY)
 
 <!--
+Ссылка на ролик на ютубе: https://www.youtube.com/watch?v=W9m85_skCCo
+
 Документация по форматированию: 
 https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
 -->
