@@ -9,7 +9,11 @@ public class Zero : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput" });
-		
 		PrivateDependencyModuleNames.AddRange(new string[] { "OnlineSubsystem", "OnlineSubsystemNull", "OnlineSubsystemSteam", "HTTP" });
+		
+		PublicIncludePaths.AddRange(new string[]
+		{
+			"Zero"
+		});
 	}
 }
