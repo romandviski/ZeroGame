@@ -29,26 +29,23 @@ public:
 	FOnDead OnDead;
 	
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-
 	UPROPERTY(Replicated)
 	float Health = 100.0f;
 	UPROPERTY(Replicated)
-	bool bIsAlive = true;
+	bool bAliveStatus = true;
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetCurrentHealth(){ return Health;}
+	FORCEINLINE float GetCurrentHealth() const { return Health;}
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	bool GetIsAlive(){ return bIsAlive;}
+	FORCEINLINE bool GetAliveStatus() const { return bAliveStatus;}
 
 	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Health")
 	virtual void ChangeHealthValue_OnServer(float ChangeValue);
 
 	UFUNCTION(NetMulticast, Reliable)
 	void HealthChangeEvent_Multicast(float newHealth, float value);
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void DeadEvent_Multicast();
-	
 };

@@ -1,48 +1,39 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "HealthComponent.h"
 
 #include "Net/UnrealNetwork.h"
 
 
-// Sets default values for this component's properties
+
 UHealthComponent::UHealthComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
-
-}
-
-// Called when the game starts
-void UHealthComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-	// ...
-	
 }
 
 void UHealthComponent::ChangeHealthValue_OnServer_Implementation(float ChangeValue)
 {
-	if (bIsAlive)
+	if (bAliveStatus)
 	{
 		Health += ChangeValue;
-		HealthChangeEvent_Multicast(Health, ChangeValue);
-		
+
+		// Логирование https://www.chrismccole.com/blog/logging-in-ue4-cpp
+		//GEngine->AddOnScreenDebugMessage(INDEX_NONE, 999.f, FColor::Red, FString::Printf(TEXT("Health %f"), ChangeValue));
+
 		if (Health > 100.0f)
 		{
 			Health = 100.0f;
 		}
-		else
+		
+		HealthChangeEvent_Multicast(Health, ChangeValue);
+
+		if (Health <= 0.0f)
 		{
-			if (Health <= 0.0f)
-			{
-				bIsAlive = false;
-				DeadEvent_Multicast();
-			}
+			bAliveStatus = false;
+			DeadEvent_Multicast();
 		}
 	}
 }
@@ -62,5 +53,5 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(UHealthComponent, Health);
-	DOREPLIFETIME(UHealthComponent, bIsAlive);
+	DOREPLIFETIME(UHealthComponent, bAliveStatus);
 }

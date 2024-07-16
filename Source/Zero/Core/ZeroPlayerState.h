@@ -8,6 +8,8 @@
 
 #include "ZeroPlayerState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FScoreChanged, int32, CurrentScore);
+
 UCLASS()
 class ZERO_API AZeroPlayerState : public APlayerState
 {
@@ -17,16 +19,19 @@ public:
 	AZeroPlayerState();
 
 protected:
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-
 	UPROPERTY(Replicated)
-	int32 GameScore = 0;
+	int32 PlayerScore = 0;
 	
 public:
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-	int32 GetCurrentGameScore(){return GameScore;}
+	UPROPERTY(BlueprintAssignable)
+	FScoreChanged ScoreChanged;
+	
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE int32 GetCurrentScore() const { return PlayerScore; }
 
 	UFUNCTION(Server, Reliable)
-	void ChangeGameScore_OnServer(int32 AddedScore);
+	void ChangePlayerScore_OnServer(int32 AddedScore);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void ChangePlayerScore_Multicast(int32 CurrentScore);
 };

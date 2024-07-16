@@ -2,7 +2,6 @@
 
 #include "ZeroCharacter.h"
 
-#include "../Weapons/Projectiles/ZeroProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -15,16 +14,13 @@
 #include "Net/UnrealNetwork.h"
 #include "Zero/Core/ZeroPlayerState.h"
 
-//////////////////////////////////////////////////////////////////////////
-// AZeroCharacter
+
 
 AZeroCharacter::AZeroCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	bReplicates = true;
-	// Character doesnt have a rifle at start
-	bHasRifle = true;
 	
 	// Мои настройки
 	GetCapsuleComponent()->InitCapsuleSize(40.f, 96.0f);
@@ -33,14 +29,14 @@ AZeroCharacter::AZeroCharacter()
 	//GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 	
 	// Create a CameraComponent	
-	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
-	FirstPersonCameraComponent->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
-	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
+	FirstPersonCamera->SetupAttachment(GetCapsuleComponent());
+	FirstPersonCamera->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
+	FirstPersonCamera->bUsePawnControlRotation = true;
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh_FP = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh_FP"));
-	Mesh_FP->SetupAttachment(FirstPersonCameraComponent);
+	Mesh_FP->SetupAttachment(FirstPersonCamera);
 	Mesh_FP->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 	Mesh_FP->bCastDynamicShadow = false;
 	Mesh_FP->CastShadow = false;
@@ -51,12 +47,12 @@ AZeroCharacter::AZeroCharacter()
 	if (HealthComponent)
 	{
 		HealthComponent->OnDead.AddDynamic(this, &AZeroCharacter::CharDead);
+		HealthComponent->OnHealthChange.AddDynamic(this, &AZeroCharacter::HealthChanged);
 	}
 }
 
 void AZeroCharacter::BeginPlay()
 {
-	// Call the base class  
 	Super::BeginPlay();
 
 	//Add Input Mapping Context
@@ -68,12 +64,9 @@ void AZeroCharacter::BeginPlay()
 		}
 	}
 	
-	if (HasAuthority())
+	if (HasAuthority() && InventoryComponent)
 	{
-		if (InventoryComponent)
-		{
-			InventoryComponent->InitWeapon_OnServer(Mesh_FP, GetMesh());
-		}
+		InventoryComponent->InitWeapon_OnServer(Mesh_FP, GetMesh());
 	}
 }
 
@@ -83,7 +76,7 @@ void AZeroCharacter::Tick(float DeltaTime)
 	
 	if (GetController() && (IsLocallyControlled() || HasAuthority()))
 	{
-		CameraLocation_Rep = FirstPersonCameraComponent->GetComponentLocation();
+		CameraLocation_Rep = FirstPersonCamera->GetComponentLocation();
 		ControlRotation_Rep = GetController()->GetControlRotation();
 		CameraForwardVector_Rep = UKismetMathLibrary::GetForwardVector(ControlRotation_Rep);
 	}
@@ -118,7 +111,7 @@ void AZeroCharacter::InputMove(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	if (Controller)
 	{
 		// add movement 
 		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
@@ -131,7 +124,7 @@ void AZeroCharacter::InputLook(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-	if (Controller != nullptr)
+	if (Controller)
 	{
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
@@ -141,14 +134,12 @@ void AZeroCharacter::InputLook(const FInputActionValue& Value)
 
 void AZeroCharacter::InputAttackPressed(const FInputActionValue& Value)
 {
-	//bool bStatus = Value.Get<bool>(); // не прокатило чёт =(
-
-	FireStatus(true);
+	ChangeFireStatus_OnServer(true);
 }
 
 void AZeroCharacter::InputAttackReleased(const FInputActionValue& Value)
 {
-	FireStatus(false);
+	ChangeFireStatus_OnServer(false);
 }
 
 void AZeroCharacter::InputExitPressed(const FInputActionValue& Value)
@@ -156,28 +147,24 @@ void AZeroCharacter::InputExitPressed(const FInputActionValue& Value)
 	UGameplayStatics::OpenLevel(GetWorld(), "MENU", true, "");
 }
 
-float AZeroCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
-                                 AActor* DamageCauser)
+float AZeroCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	if (HasAuthority())
+	const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	if (HasAuthority() && HealthComponent)
 	{
-		if (HealthComponent && HealthComponent->GetIsAlive())
+		if (HealthComponent->GetAliveStatus())
 		{
 			HealthComponent->ChangeHealthValue_OnServer(-DamageAmount);
 
-			bool bSelf = DamageCauser == this;
-			int8 Score = bSelf ? -50 : 100;
-			if (!HealthComponent->GetIsAlive())
+			if (!HealthComponent->GetAliveStatus())
 			{
-				auto KillerController = Cast<APlayerController>(EventInstigator);
-				if (KillerController != nullptr)
+				if (const auto KillerController = Cast<APlayerController>(EventInstigator))
 				{
-					auto KillerState = KillerController->GetPlayerState<AZeroPlayerState>();
-					if (KillerState != nullptr)
+					if (const auto KillerState = KillerController->GetPlayerState<AZeroPlayerState>())
 					{
-						KillerState->ChangeGameScore_OnServer(Score);
+						const int8 Score = DamageCauser == this ? -50 : 100; // Для начисление очков за убийство (не красиво)
+						KillerState->ChangePlayerScore_OnServer(Score);
 					}
 				}
 			}
@@ -191,27 +178,20 @@ void AZeroCharacter::CharDead()
 {
 	if (HasAuthority())
 	{
-	/* // Анимация смерти, так себе
-		float TimeAnim = FMath::FRandRange(0.0f, 0.0f);
-		int32 rnd = FMath::RandHelper(DeadsAnim.Num());
-		if (DeadsAnim.IsValidIndex(rnd) && DeadsAnim[rnd] && GetMesh() && GetMesh()->GetAnimInstance())
-		{
-			TimeAnim = DeadsAnim[rnd]->GetPlayLength();
-			//GetMesh()->GetAnimInstance()->Montage_Play(DeadsAnim[rnd]);
-			PlayAnim_Multicast(DeadsAnim[rnd]);
-		}
-	*/
-		FireStatus(false);
+		ChangeFireStatus_OnServer(false);
 		
 		if (GetController())
 		{
 			GetController()->UnPossess();
 		}
-
-		//GetWorldTimerManager().SetTimer(TimerHandle_RagDollTimer, this, &AZeroCharacter::EnableRagdoll_Multicast, TimeAnim, false);
+		
 		EnableRagdoll_Multicast();
-		SetLifeSpan(60.0f);
 	}
+}
+
+void AZeroCharacter::HealthChanged(float CurrentHealth, float Damage)
+{
+	CharacterHealthChanged.Broadcast(CurrentHealth);
 }
 
 void AZeroCharacter::EnableRagdoll_Multicast_Implementation()
@@ -229,29 +209,21 @@ void AZeroCharacter::EnableRagdoll_Multicast_Implementation()
 		GetMesh()->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Ignore);
 		GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		GetMesh()->SetSimulatePhysics(true);
-	}	
+	}
+	
+	SetLifeSpan(60.0f);
 }
 
-void AZeroCharacter::FireStatus_Implementation(bool bStatus)
+void AZeroCharacter::ChangeFireStatus_OnServer_Implementation(const bool bNewStatus)
 {
-	if (HasAuthority() && HealthComponent->GetIsAlive() && InventoryComponent && InventoryComponent->GetCurrentWeapon())
+	if (HasAuthority() && HealthComponent && HealthComponent->GetAliveStatus() && InventoryComponent && InventoryComponent->GetCurrentWeapon())
 	{
-		InventoryComponent->GetCurrentWeapon()->FireRequest(bStatus);
+		InventoryComponent->GetCurrentWeapon()->FireRequest(bNewStatus);
 	}
 	else if (HasAuthority() && InventoryComponent && InventoryComponent->GetCurrentWeapon())
 	{
-		InventoryComponent->GetCurrentWeapon()->FireRequest(bStatus);
+		InventoryComponent->GetCurrentWeapon()->FireRequest(bNewStatus);
 	}
-}
-
-FVector AZeroCharacter::GetFireLocation()
-{
-	return CameraLocation_Rep;
-}
-
-FVector AZeroCharacter::GetFireVector()
-{
-	return CameraForwardVector_Rep;
 }
 
 void AZeroCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

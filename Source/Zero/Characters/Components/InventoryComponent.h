@@ -20,23 +20,22 @@ class ZERO_API UInventoryComponent : public UActorComponent
 public:
 	UInventoryComponent();
 
-	// класс оружия по умолчанию Установлен в блюпринте
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<AWeaponBase> SpawnWeaponClass;
-
 protected:
-	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	// класс оружия по умолчанию Установлен в блюпринте
+	UPROPERTY(EditDefaultsOnly, Category = Settings)
+	TSubclassOf<AWeaponBase> SpawnWeaponClass;
 	
 	UPROPERTY()
 	USkeletalMeshComponent* PlayerFP_Mesh = nullptr;
 	UPROPERTY()
 	USkeletalMeshComponent* PlayerTP_Mesh = nullptr;
-	
-public:
-	UPROPERTY(Replicated, BlueprintReadOnly)
+
+	UPROPERTY(Replicated)
 	AWeaponBase* CurrentWeapon = nullptr;
 	
+public:
 	UFUNCTION(Server, Reliable)
 	void InitWeapon_OnServer(USkeletalMeshComponent* FP_Mesh, USkeletalMeshComponent* TP_Mesh);
 
@@ -44,5 +43,5 @@ public:
 	void SetNewWeapon_OnServer(TSubclassOf<AWeaponBase> NewWeapon);
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = Weapons)
-	AWeaponBase* GetCurrentWeapon(){return CurrentWeapon;}
+	FORCEINLINE AWeaponBase* GetCurrentWeapon() const { return CurrentWeapon; }
 };

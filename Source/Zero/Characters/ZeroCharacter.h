@@ -8,48 +8,55 @@
 
 #include "ZeroCharacter.generated.h"
 
-class UInputComponent;
-class USkeletalMeshComponent;
-class USceneComponent;
-class UCameraComponent;
-class UAnimMontage;
-class USoundBase;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterHealthChanged, float, CurrentHealth);
 
+class USkeletalMeshComponent;
+class UCameraComponent;
+class UInventoryComponent;
+class UHealthComponent;
+class UInputMappingContext;
+class UInputAction;
+
+/**
+ *  Персонаж игрока
+ */
 UCLASS(config=Game)
 class AZeroCharacter : public ACharacter
 {
 	GENERATED_BODY()
+	
 private:
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(Replicated, VisibleDefaultsOnly, Category=Mesh)
+	UPROPERTY(Replicated, VisibleDefaultsOnly, Category = Components)
 	USkeletalMeshComponent* Mesh_FP;
 	/** First person camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FirstPersonCameraComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* FirstPersonCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UInventoryComponent* InventoryComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UHealthComponent* HealthComponent;
+	
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
-	class UInputMappingContext* DefaultMappingContext;
+	UInputMappingContext* DefaultMappingContext;
 	/** Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* LookAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* MoveAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* JumpAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* ExitAction;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UInventoryComponent* InventoryComponent;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
-	class UHealthComponent* HealthComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LookAction;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* MoveAction;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* JumpAction;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* FireAction;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Input, meta=(AllowPrivateAccess = "true"))
+	UInputAction* ExitAction;
 
 protected:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	
-	/** input */
+	/** Input functions */
 	void InputMove(const FInputActionValue& Value);
 	void InputLook(const FInputActionValue& Value);
 	void InputAttackPressed(const FInputActionValue& Value);
@@ -58,43 +65,44 @@ protected:
 	
 	UFUNCTION()
 	void CharDead();
+	UFUNCTION()
+	void HealthChanged(float CurrentHealth, float Damage);
+	
 	UFUNCTION(NetMulticast, Reliable)
 	void EnableRagdoll_Multicast();
 	
 	// Variables
 	UPROPERTY(Replicated)
 	FVector CameraLocation_Rep;
-	
-public:
-	AZeroCharacter();
-	
-	virtual void BeginPlay();
-	virtual void Tick(float DeltaTime) override;
-	
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
-
-	FTimerHandle TimerHandle_RagDollTimer;
-	
-	/** Bool for AnimBP to switch to another animation set */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Animation)
-	bool bHasRifle;
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, Category = Animation)
+	UPROPERTY(Replicated)
 	FRotator ControlRotation_Rep;
 	UPROPERTY(Replicated)
 	FVector CameraForwardVector_Rep;
 	
-	FVector GetFireLocation();
-	FVector GetFireVector();
+	bool bHasRifle = true;
 	
-	/** Returns Mesh1P subobject **/
-	USkeletalMeshComponent* GetMesh1P() const { return Mesh_FP; }
-	/** Returns FirstPersonCameraComponent subobject **/
-	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	FTimerHandle RagdollTimer;
+	
+public:
+	AZeroCharacter();
+	
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
+
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FCharacterHealthChanged CharacterHealthChanged;
+	
+	// Геттеры
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE bool GetWeaponStatus() const { return bHasRifle; }
+	FORCEINLINE FVector GetFireLocation() const { return CameraLocation_Rep; }
+	FORCEINLINE FVector GetFireVector() const { return CameraForwardVector_Rep; }
+	UFUNCTION(BlueprintPure)
+	FORCEINLINE FRotator GetRepControlRotation() const { return ControlRotation_Rep; }
+	FORCEINLINE USkeletalMeshComponent* GetMesh1P() const { return Mesh_FP; }
+	FORCEINLINE UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCamera; }
 
 	UFUNCTION(Server, Reliable)
-	void FireStatus(bool bStatus);
-	
+	void ChangeFireStatus_OnServer(const bool bNewStatus);
 };
-

@@ -2,42 +2,31 @@
 
 
 #include "ZeroPlayerState.h"
-
-#include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
 
-// Sets default values
+
 AZeroPlayerState::AZeroPlayerState()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 }
 
-// Called when the game starts or when spawned
-void AZeroPlayerState::BeginPlay()
+void AZeroPlayerState::ChangePlayerScore_OnServer_Implementation(int32 AddedScore)
 {
-	Super::BeginPlay();
-	
+	PlayerScore += AddedScore;
+	ChangePlayerScore_Multicast(PlayerScore);
 }
 
-// Called every frame
-void AZeroPlayerState::Tick(float DeltaTime)
+void AZeroPlayerState::ChangePlayerScore_Multicast_Implementation(int32 CurrentScore)
 {
-	Super::Tick(DeltaTime);
-}
-
-void AZeroPlayerState::ChangeGameScore_OnServer_Implementation(int32 AddedScore)
-{
-	//GameScore = GameScore + UKismetMathLibrary::Abs(AddedScore);
-	GameScore = GameScore + AddedScore;
+	ScoreChanged.Broadcast(CurrentScore);
 }
 
 void AZeroPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AZeroPlayerState, GameScore);
+	DOREPLIFETIME(AZeroPlayerState, PlayerScore);
 }
-

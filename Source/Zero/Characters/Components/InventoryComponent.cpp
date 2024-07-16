@@ -7,15 +7,8 @@
 
 UInventoryComponent::UInventoryComponent()
 {
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
-}
-
-void UInventoryComponent::BeginPlay()
-{
-	Super::BeginPlay();
-
-
 }
 
 void UInventoryComponent::InitWeapon_OnServer_Implementation(USkeletalMeshComponent* FP_Mesh, USkeletalMeshComponent* TP_Mesh)

@@ -1,9 +1,9 @@
 # Zero Game
 
 ## Простой сетевой шутер от первого лица
-Разработано на UE_5.3 и C++
+Разработано на UE_5.4 и C++
 
-Используется плагин [AdvancedSteamSessions](https://github.com/mordentral/AdvancedSessionsPlugin)
+Используется плагин [AdvancedSteamSessions](https://vreue4.com/advanced-sessions-binaries)
 <br/>*(обновляя движок не забуть обновить плагин)*
 
 Обязательно закинь DLL из папки стима в папку движка 
@@ -16,6 +16,7 @@
 <br/>*(стим будет работать только в шипинг билде)*
 
 [Делал по инструкции](https://devtribe.ru/p/unreal-engine/27-05-2019-vnedrenie-steamworks-sdk-v-unreal-engine)
+[Инструкция по свежее](https://itch.io/blog/641002/advanced-steam-sessions-multiplayer-unreal-engine-tutorial)
 
 <br/>Скачать игру: https://cloud.mail.ru/public/mfHp/5riKVomkB
 <br/>👇 Видео геймплея 👍
