@@ -10,31 +10,31 @@
 class USphereComponent;
 class UProjectileMovementComponent;
 
+
+
 UCLASS(config=Game)
 class AZeroProjectile : public AActor
 {
 	GENERATED_BODY()
 
-	/** Sphere collision component */
-	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	USphereComponent* CollisionComp;
-
-	/** Projectile movement component */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
 	UProjectileMovementComponent* ProjectileMovement;
+
+	float Damage = 10.0f;
 
 public:
 	AZeroProjectile();
-
-	/** Returns CollisionComp subobject **/
+	
 	USphereComponent* GetCollisionComp() const { return CollisionComp; }
-	/** Returns ProjectileMovement subobject **/
 	UProjectileMovementComponent* GetProjectileMovement() const { return ProjectileMovement; }
 	
-	float Damage = 10.0f;
-
-	/** called when projectile hits something */
+	/** вызывается, когда снаряд попадает во что-то */
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	FORCEINLINE void SetDamage(const float NewDamage){ Damage = NewDamage; }
 };
 

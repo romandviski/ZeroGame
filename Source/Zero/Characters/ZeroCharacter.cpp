@@ -22,19 +22,18 @@ AZeroCharacter::AZeroCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	bReplicates = true;
 	
-	// Мои настройки
+	// Свои настройки
 	GetCapsuleComponent()->InitCapsuleSize(40.f, 96.0f);
 	GetMesh()->SetOwnerNoSee(true);
 	GetMesh()->SetIsReplicated(true);
 	//GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 	
-	// Create a CameraComponent	
 	FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCamera->SetupAttachment(GetCapsuleComponent());
-	FirstPersonCamera->SetRelativeLocation(FVector(-10.f, 0.f, 60.f)); // Position the camera
+	FirstPersonCamera->SetRelativeLocation(FVector(-10.f, 0.f, 60.f));
 	FirstPersonCamera->bUsePawnControlRotation = true;
 
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
+	// компонент сетки, который будет использоваться при виде от «1-го лица»
 	Mesh_FP = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh_FP"));
 	Mesh_FP->SetupAttachment(FirstPersonCamera);
 	Mesh_FP->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
@@ -87,18 +86,18 @@ void AZeroCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		//Jumping
+		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		//Moving
+		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AZeroCharacter::InputMove);
 
-		//Looking
+		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AZeroCharacter::InputLook);
 		
 		// Weapon
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AZeroCharacter::InputAttackPressed); // Started
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AZeroCharacter::InputAttackPressed);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &AZeroCharacter::InputAttackReleased);
 
 		// Exit

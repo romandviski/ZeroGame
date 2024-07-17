@@ -13,15 +13,18 @@ AZeroPlayerState::AZeroPlayerState()
 	bReplicates = true;
 }
 
-void AZeroPlayerState::ChangePlayerScore_OnServer_Implementation(int32 AddedScore)
+void AZeroPlayerState::OnRep_ScoreChanged()
 {
-	PlayerScore += AddedScore;
-	ChangePlayerScore_Multicast(PlayerScore);
+	ScoreChanged.Broadcast(PlayerScore);
 }
 
-void AZeroPlayerState::ChangePlayerScore_Multicast_Implementation(int32 CurrentScore)
+void AZeroPlayerState::ChangePlayerScore_OnServer_Implementation(int32 AddedScore)
 {
-	ScoreChanged.Broadcast(CurrentScore);
+	if (HasAuthority())
+	{
+		PlayerScore += AddedScore;
+		ScoreChanged.Broadcast(PlayerScore);
+	}
 }
 
 void AZeroPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

@@ -7,41 +7,40 @@
 
 #include "ExplosionActor.generated.h"
 
+class USceneComponent;
+class UStaticMeshComponent;
+class USphereComponent;
+class URadialForceComponent;
+
 UCLASS()
 class ZERO_API AExplosionActor : public AActor
 {
 	GENERATED_BODY()
+	
+private:
+	UPROPERTY(EditDefaultsOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* SceneComponent = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* StaticMesh = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	USphereComponent* CollisionSphere = nullptr;
+	UPROPERTY(EditDefaultsOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	URadialForceComponent* RadialForce = nullptr;
 
+	FTimerHandle ReloadTimer;
+	bool bActive = true;
+	
 public:
 	// Sets default values for this actor's properties
 	AExplosionActor();
 
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class USceneComponent* SceneComponent = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class UStaticMeshComponent* StaticMesh = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class USphereComponent* CollisionSphere = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class URadialForceComponent* RadialForce = nullptr;
-	
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-	
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
+	
 	UFUNCTION(Server, Reliable)
 	void ExplosionEffect_OnServer();
-	
 	UFUNCTION(NetMulticast, Unreliable)
 	void ExplosionEffect_Multicast();
-
-	FTimerHandle ReloadTimer;
-	bool bActive = true;
-
 	UFUNCTION(NetMulticast, Unreliable)
 	void Reload_Multicast();
 	

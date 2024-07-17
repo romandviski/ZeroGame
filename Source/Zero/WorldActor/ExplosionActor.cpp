@@ -9,13 +9,14 @@
 #include "PhysicsEngine/RadialForceComponent.h"
 
 
-// Sets default values
+
 AExplosionActor::AExplosionActor()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("My Scene"));
+
 	RootComponent = SceneComponent;
 	
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("My Static Mesh"));
@@ -39,19 +40,6 @@ AExplosionActor::AExplosionActor()
 	//RadialForce->ImpulseStrength(Damage * 10);
 }
 
-// Called when the game starts or when spawned
-void AExplosionActor::BeginPlay()
-{
-	Super::BeginPlay();
-	
-}
-
-// Called every frame
-void AExplosionActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
 float AExplosionActor::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
 	AActor* DamageCauser)
 {
@@ -67,6 +55,7 @@ float AExplosionActor::TakeDamage(float DamageAmount, FDamageEvent const& Damage
 				UGameplayStatics::ApplyDamage(CurrentActor, Damage, EventInstigator, DamageCauser, NULL);
 			}
 		}
+		
 		if (HasAuthority())
 		{
 			ExplosionEffect_OnServer();

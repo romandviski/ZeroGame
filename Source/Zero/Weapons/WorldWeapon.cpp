@@ -5,17 +5,18 @@
 
 #include "Components/BoxComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
-#include "Zero/Characters/ZeroCharacter.h"
-#include "Zero/Characters/Components/InventoryComponent.h"
+#include "Characters/ZeroCharacter.h"
+#include "Characters/Components/InventoryComponent.h"
 
 
-// Sets default values
+
 AWorldWeapon::AWorldWeapon()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 	
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("My Scene"));
+
 	RootComponent = SceneComponent;
 	
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("My Static Mesh"));
@@ -31,10 +32,8 @@ AWorldWeapon::AWorldWeapon()
 	CollisionBox->SetCollisionResponseToChannel(ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	
 	MovementComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("My Movement Component"));
-	
 }
 
-// Called when the game starts or when spawned
 void AWorldWeapon::BeginPlay()
 {
 	Super::BeginPlay();
@@ -43,12 +42,6 @@ void AWorldWeapon::BeginPlay()
 	{
 		this->Destroy();
 	}
-}
-
-// Called every frame
-void AWorldWeapon::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
 }
 
 void AWorldWeapon::NotifyActorBeginOverlap(AActor* OtherActor)
@@ -63,19 +56,14 @@ void AWorldWeapon::NotifyActorBeginOverlap(AActor* OtherActor)
 
 void AWorldWeapon::NotifyActorEndOverlap(AActor* OtherActor)
 {
-
-
 	Super::NotifyActorEndOverlap(OtherActor);
 }
 
 void AWorldWeapon::SetNewWeapon_OnServer_Implementation(AActor* OtherActor)
 {
-	auto OtherChar = Cast<AZeroCharacter>(OtherActor);
-
-	if (OtherChar)
+	if (const auto OtherChar = Cast<AZeroCharacter>(OtherActor))
 	{
-		auto Inventory = Cast<UInventoryComponent>(OtherChar->GetComponentByClass(UInventoryComponent::StaticClass())) ;
-		if (Inventory)
+		if (const auto Inventory = Cast<UInventoryComponent>(OtherChar->GetComponentByClass(UInventoryComponent::StaticClass())))
 		{
 			Inventory->SetNewWeapon_OnServer(SpawnWeaponClass);
 

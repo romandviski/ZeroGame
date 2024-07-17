@@ -1,14 +1,15 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "WeaponBase.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "../Characters/ZeroCharacter.h"
-#include "../Weapons/Projectiles/ZeroProjectile.h"
+#include "Characters/ZeroCharacter.h"
+#include "Weapons/Projectiles/ZeroProjectile.h"
 #include "Components/AudioComponent.h"
+
+
 
 AWeaponBase::AWeaponBase()
 {
@@ -37,12 +38,6 @@ AWeaponBase::AWeaponBase()
 	MyAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("My Audio Component"));
 	MyAudioComponent->SetupAttachment(GetRootComponent());
 	MyAudioComponent->SetAutoActivate(false);
-}
-
-void AWeaponBase::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }
 
 void AWeaponBase::Tick(float DeltaTime)
@@ -132,14 +127,14 @@ void AWeaponBase::FireTick(float DeltaTime)
 
 void AWeaponBase::Fire()
 {
-	auto OwnerPlayer = Cast<AZeroCharacter>(GetOwner());
-	auto PlayerController = Cast<APlayerController>(OwnerPlayer->GetController());
+	const auto OwnerPlayer = Cast<AZeroCharacter>(GetOwner());
+	const auto PlayerController = Cast<APlayerController>(OwnerPlayer->GetController());
 
 	FireTimer = RateOfFire;
 	FireStartPoint = OwnerPlayer->GetFireLocation();
 	FireForwardVector = OwnerPlayer->GetFireVector();
 	
-	for (int8 i = 0; i < BulletOnShoot; i++) // Shotgun... maybe later...
+	for (int8 i = 0; i < BulletOnShoot; i++) // дробовик... может потом...
 	{
 		FHitResult Hit;
 		TArray<AActor*> Actors;
@@ -148,8 +143,7 @@ void AWeaponBase::Fire()
 		
 		if (ProjectileClass)
 		{
-			UWorld* const World = GetWorld();
-			if (World != nullptr)
+			if (UWorld* const World = GetWorld())
 			{
 				/* получение направления через PlayerCameraManager (потом подумаю, чёт сразу не завелась)
 				const FRotator SpawnRotation = PlayerController->PlayerCameraManager->GetCameraRotation();
@@ -160,11 +154,10 @@ void AWeaponBase::Fire()
 
 				FActorSpawnParameters ActorSpawnParams;
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-				
-				auto Projectile = World->SpawnActor<AZeroProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-				if (Projectile)
+
+				if (const auto Projectile = World->SpawnActor<AZeroProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams))
 				{
-					Projectile->Damage = this->Damage;
+					Projectile->SetDamage(this->Damage);
 					Projectile->SetOwner(OwnerPlayer);
 				}
 				

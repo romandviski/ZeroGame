@@ -4,28 +4,31 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "../Weapons/WeaponInterface.h"
+#include "Weapons/WeaponInterface.h"
 
 #include "WeaponBase.generated.h"
+
+
 
 UCLASS()
 class ZERO_API AWeaponBase : public AActor, public IWeaponInterface
 {
 	GENERATED_BODY()
+
+private:
+	// Components
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* SceneComponent = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* SkeletalMeshWeapon_FP = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* SkeletalMeshWeapon_TP = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UAudioComponent* MyAudioComponent = nullptr;
 	
 public:
 	AWeaponBase();
-
-	// Components
-	UPROPERTY(EditDefaultsOnly)
-	USceneComponent* SceneComponent = nullptr;
-	UPROPERTY(EditDefaultsOnly)
-	USkeletalMeshComponent* SkeletalMeshWeapon_FP = nullptr;
-	UPROPERTY(EditDefaultsOnly)
-	USkeletalMeshComponent* SkeletalMeshWeapon_TP = nullptr;
-	UPROPERTY(EditDefaultsOnly)
-	UAudioComponent* MyAudioComponent = nullptr;
-
+	
 	// Settings
 	UPROPERTY(EditDefaultsOnly, Category = Settings)
 	FName SocketName = "GripPoint";
@@ -41,8 +44,6 @@ public:
 	FVector MuzzleOffset = FVector(100.0f, 0.0f, 25.0f);
 
 protected:
-	// Base
-	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 	// Variables

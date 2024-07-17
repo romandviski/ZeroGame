@@ -12,22 +12,20 @@
 
 AZeroProjectile::AZeroProjectile() 
 {
+	PrimaryActorTick.bCanEverTick = false;
 	bReplicates = true;
 
-	// Use a sphere as a simple collision representation
+	// сфера в качестве простого представления столкновений
 	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
 	CollisionComp->InitSphereRadius(10.0f);
 	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-	CollisionComp->OnComponentHit.AddDynamic(this, &AZeroProjectile::OnHit);// set up a notification for when this component hits something blocking
-
-	// Players can't walk on it
 	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
 	CollisionComp->CanCharacterStepUpOn = ECB_No;
+	CollisionComp->OnComponentHit.AddDynamic(this, &AZeroProjectile::OnHit); // уведомление, когда этот компонент столкнется с чем-то блокирующим
 
-	// Set as root component
 	RootComponent = CollisionComp;
 
-	// Use a ProjectileMovementComponent to govern this projectile's movement
+	// компонент ProjectileMovementComponent для управления движением этого снаряда
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
 	ProjectileMovement->UpdatedComponent = CollisionComp;
 	ProjectileMovement->InitialSpeed = 3000.f;
@@ -35,7 +33,7 @@ AZeroProjectile::AZeroProjectile()
 	ProjectileMovement->bRotationFollowsVelocity = true;
 	ProjectileMovement->bShouldBounce = true;
 
-	// Die after some seconds by default
+	// По умолчанию умирает через несколько секунд
 	InitialLifeSpan = 3.0f;
 }
 

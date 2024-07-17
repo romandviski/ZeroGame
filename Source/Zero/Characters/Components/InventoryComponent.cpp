@@ -5,6 +5,8 @@
 
 #include "Net/UnrealNetwork.h"
 
+
+
 UInventoryComponent::UInventoryComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;

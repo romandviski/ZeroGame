@@ -4,40 +4,41 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Zero/Weapons/WeaponBase.h"
+#include "Weapons/WeaponBase.h"
 
 #include "WorldWeapon.generated.h"
+
+class USceneComponent;
+class UStaticMeshComponent;
+class UBoxComponent;
+class URotatingMovementComponent;
 
 UCLASS()
 class ZERO_API AWorldWeapon : public AActor
 {
 	GENERATED_BODY()
 
-public:
-	// Sets default values for this actor's properties
-	AWorldWeapon();
-
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class USceneComponent* SceneComponent = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class UStaticMeshComponent* StaticMesh = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class UBoxComponent* CollisionBox = nullptr;
-	UPROPERTY(EditDefaultsOnly, Category = Components)
-	class URotatingMovementComponent* MovementComponent = nullptr;
-	
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	UFUNCTION(Server, Reliable)
-	void SetNewWeapon_OnServer(AActor* OtherActor);
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* SceneComponent = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* StaticMesh = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* CollisionBox = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Components, meta = (AllowPrivateAccess = "true"))
+	URotatingMovementComponent* MovementComponent = nullptr;
 
 	FTimerHandle ReloadTimer;
 	bool bActive = true;
+	
+public:
+	AWorldWeapon();
+	
+protected:
+	virtual void BeginPlay() override;
 
+	UFUNCTION(Server, Reliable)
+	void SetNewWeapon_OnServer(AActor* OtherActor);
 	UFUNCTION(NetMulticast, Unreliable)
 	void Reload_Multicast();
 	UFUNCTION(NetMulticast, Unreliable)

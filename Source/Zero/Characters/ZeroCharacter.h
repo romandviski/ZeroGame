@@ -54,6 +54,9 @@ private:
 	UInputAction* ExitAction;
 
 protected:
+	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 	
 	/** Input functions */
@@ -85,10 +88,6 @@ protected:
 	
 public:
 	AZeroCharacter();
-	
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 
 	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FCharacterHealthChanged CharacterHealthChanged;

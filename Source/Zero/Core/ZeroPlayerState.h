@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "GameFramework/PlayerState.h"
 
 #include "ZeroPlayerState.generated.h"
@@ -19,7 +18,7 @@ public:
 	AZeroPlayerState();
 
 protected:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_ScoreChanged)
 	int32 PlayerScore = 0;
 	
 public:
@@ -32,6 +31,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void ChangePlayerScore_OnServer(int32 AddedScore);
 
-	UFUNCTION(NetMulticast, Reliable)
-	void ChangePlayerScore_Multicast(int32 CurrentScore);
+	UFUNCTION()
+	void OnRep_ScoreChanged();
 };
